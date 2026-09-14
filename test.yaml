@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: vulnerable-app
+  labels:
+    app: vulnerable-app
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: vulnerable-app
+
+  template:
+    metadata:
+      labels:
+        app: vulnerable-app
+
+    spec:
+
+      # CONT-K8S-002
+      hostNetwork: true
+
+      # CONT-K8S-006
+      hostPID: true
+
+      # CONT-K8S-007
+      hostIPC: true
+
+      containers:
+        - name: vulnerable-container
+
+          # CONT-K8S-005
+          image: nginx:latest
+
+          ports:
+            - containerPort: 80
+
+              # CONT-K8S-008
+              hostPort: 8080
+
+          securityContext:
+
+            # CONT-K8S-001
+            privileged: true
+
+            # CONT-K8S-004
+            allowPrivilegeEscalation: true
+
+            # CONT-K8S-009
+            runAsUser: 0
+
+            # CONT-K8S-010
+            runAsNonRoot: false
+
+            # CONT-K8S-011
+            readOnlyRootFilesystem: false
+
+            # CONT-K8S-012
+            seccompProfile:
+              type: Unconfined
+
+            capabilities:
+              add:
+
+                # CONT-K8S-013
+                - SYS_ADMIN
+                - NET_ADMIN
+                - SYS_PTRACE
+
+          volumeMounts:
+            - name: host-root
+              mountPath: /host
+
+      volumes:
+        - name: host-root
+
+          # CONT-K8S-003
+          hostPath:
+            path: /
